@@ -1,0 +1,214 @@
+#+INCLUDE: "./head.org"
+
+#+TITLE: Tech-Foo
+
+* Intro
+
+
+This document contains the various snippets of script and code I find useful
+once in a while (or expect to).
+
+As of 2026-02-26 this page is an early work in progress, just dumping info from
+some notes I have accumulated over time.
+
+
+** TODO Check Quality of Miscellaneous Sections.
+
+Looks a bit cramped, splitting into subsections may be a good idea.
+
+
+** TODO Collect Notes
+
+Most info seems to be in main =notes.adoc= file, more bits in =tech_foo=
+directory, some useful things in the raw =creative_log.org=, think where else.
+
+
+** TODO Include Remaining Topics
+
+Check if "Linux" and "Bash" are done, include remaining topics.
+
+
+** TODO Refine Examples.
+
+- Many lines are longer than what fits in the box and require scrolling,
+  potential case of longliningitus.
+  - Check if all the lines really need to be as long.
+  - CSS may need a tweak.
+  - Perhaps add the =-n= flag to listings while you're at it.
+
+
+** TODO Scan for Remaining To-Dos.
+
+
+* Assembly and C
+
+** Linking the C Runtime With Ld (Dynamically Linked)
+
+#+BEGIN_SRC bash
+  nasm -f elf64 -o my.o my.asm
+  ld -o my_exe -pie -dynamic-linker /lib64/ld-linux-x86-64.so.2 -lc /usr/lib/crt1.o my.o
+#+END_SRC
+
+- =-pie= : make a PIE (Position Independent Executable, yummy!).
+- =-dynamic-linker <path>= : who's gonna execute this executable, otherwise you'll
+  encounter something along the lines of "cannot execute: required file not
+  found".
+- =-lc= : linking in the C library for e.g. =__libc_start_main=.
+- =/usr/lib/crt1.o= : linking together with the C runtime. (that's where the
+  =_start= is, among other things).
+
+
+* Bash
+
+** Miscellaneous
+#+BEGIN_SRC bash
+  #replace spaces in file names
+  for f in *; do mv -v "${f}" $(echo "${f}" | tr ' ' '_'); done
+
+  #regex inverse/negation (e.g. ffmpeg video compression), bash string replacement
+  #INFO probably better to use 'find' for actual tasks like this
+  #WARNING - bad things will happen if filenames have spaces
+  for f in $(ls ./ | rg --pcre2 '^(?!.*\.crf28).*\.mkv$'); do ffmpeg -i ${f} -vcodec libx265 -crf 28 ${f%.mkv}.x265.crf28.mkv; done
+
+  #compile asciidoc, view resulting file in a browser, and delete output
+  in='notes.adoc' out='notes.html' compiler='asciidoctor' browser='vivaldi' bash -c '"$compiler" "$in" -o "$out"; "$browser" "$out"; sleep 1; rm "$out"'
+
+  #extract file name parts from path
+  f='/this/is/a/glorious.file.d.!@#$%^&*()_+/name.ext1.ext2.ext3';
+
+  fbase=$(basename $f); ftitle=${fbase}; echo "$ftitle"
+  name.ext1.ext2.ext3
+
+  fbase=$(basename $f); ftitle=${fbase%%.*}; echo "$ftitle"
+  name
+
+  fbase=$(basename $f); ftitle=${fbase%.*}; echo "$ftitle"
+  name.ext1.ext2
+
+  fbase=$(basename $f); ftitle=${fbase##*.}; echo "$ftitle"
+  ext3
+
+  fbase=$(basename $f); ftitle=${fbase#*.}; echo "$ftitle"
+  ext1.ext2.ext3
+
+  #compose a command string and execute with eval (includes double-escaped quotes)
+  for f in $(find -maxdepth 1 -type f); do fbase=$(basename $f); ftitle=${fbase%%.*}; ftitle=$(echo $ftitle | tr '_' ' '); exstr=$(printf 'kid3-cli -c "set title \\"%s\\"" "%s"\n' "$ftitle" "$f"); printf '\n*** %s ***\n' "$exstr"; eval $exstr; done
+#+END_SRC
+
+
+** String Case Conversions (bash 4.0+)
+
+#+BEGIN_SRC bash
+  TST_STR_L="lowercase test string"
+
+  echo ${TST_STR_L^}
+  Lowercase test string
+
+  $ echo ${TST_STR_L^^}
+  LOWERCASE TEST STRING
+
+  $ echo ${TST_STR_L^^[wcst]}
+  loWerCaSe TeST STring
+
+  TST_STR_U="UPPERCASE TEST STRING"
+
+  $echo "${TST_STR_U,}"
+  uPPERCASE TEST STRING
+
+  $echo "${TST_STR_U,,}"
+  uppercase test string
+
+  $echo "${TST_STR_U,,[WCST]}"
+  UPPERcAsE tEst stRING
+#+END_SRC
+
+
+** Replace Character
+
+#+CAPTION: Using bash argument expansion.
+#+BEGIN_SRC bash
+  filename="avoid spaces in file names"
+  filename=${filename// /_}
+  echo $filename
+#+END_SRC
+
+#+CAPTION: Using =tr= (more portable).
+#+BEGIN_SRC bash
+  filename="avoid spaces in file names"
+  filename=$(echo $filename | tr ' ' '_')
+  echo $filename
+#+END_SRC
+
+
+** Compare File Age
+
+Operators =-nt= and =-ot= for /newer-than/ and /older-than/ respectively.
+
+#+BEGIN_SRC bash
+  doc_files=*.org
+
+  for f in ${doc_files[@]}; do
+      # Don't waste time processing unchanged files
+      if [[ "$f" -ot "${f%%.org}.html" ]]; then continue; fi
+
+      echo "$f"
+      emacs "$f" --batch -f org-html-export-to-html --kill
+  done
+#+END_SRC
+
+*** TODO Test the example, typed from memory.
+
+
+* Linux Miscellaneous
+
+#+BEGIN_SRC bash
+  #kill all radios
+  rfkill block all (to unblock rfkill unblock all)
+
+  #archive and encrypt
+  dirname="mydir"
+  tar -cf - "$dirname" | openssl enc -e -aes256 -pbkdf2 | xz -9 -T0 >> "${dirname}.tar.xz"
+
+  #decrypt archive
+  fname="archive.tar.xz"
+  xz --decompress --stdout "$fname" | openssl enc -d -aes256 -pbkdf2 | tar -x -C test1/
+
+  #fix java GUI for non-reparenting window managers, set env var
+  export _JAVA_AWT_WM_NONREPARENTING=1
+
+  #convert audio files with ffmpeg (mp3 to opus)
+  bitrate=80k; in_ext=mp3; out_ext=opus; lib=libopus; for fname in ./*."$in_ext"; do ffmpeg -i "$fname" -c:a "$lib" -b:a $bitrate -af "aresample=async=1:first_pts=0" $(echo ${fname%.$in_ext}.$bitrate.$out_ext); done
+
+  #compress video files with ffmpeg
+  #WARNING - make sure files have no spaces or characters bash treats as special
+  for f in $(ls ./ | rg --pcre2 '^(?!.*\.crf28).*\.mkv$'); do ffmpeg -i ${f} -vcodec libx265 -crf 28 ${f%.mkv}.x265.crf28.mkv; done
+#+END_SRC
+
+
+** Scan Files For a String
+
+*** Grep
+
+#+BEGIN_SRC bash
+  grep -rn --include=\*.c . -e "// TODO"
+#+END_SRC
+
+- =-E= use extended regexp.
+- =-e= use regexp patterns.
+- =-i= ignore case.
+- =--include= which files to include in the search.
+- =-l= or =-L= for case.
+- =-n= show line number.
+- =-r= recursive.
+- =-w= whole word.
+
+
+*** Ripgrep (a.k.a. Rg)
+
+#+BEGIN_SRC bash
+  rg -t c -C3 -e "// TODO" .
+#+END_SRC
+
+- =-t= type (e.g. =c= for C source files).
+- =-e= regexp, similar to extended regexp in =grep=.
+- =-C<n>= context: print <n> number of lines before and after match.

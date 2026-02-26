@@ -1,0 +1,10 @@
+#+INCLUDE: "./head.org"
+
+#+TITLE: Index
+
+Hi, welcome to my little corner of the Internet. Below are some potential places
+of interest.
+
+- [[file:./tech_foo.org][Snippets of tech-foo.]]
+- [[file:weblog.org][Weblog.]]
+- [[file:projects.org][Projects.]]

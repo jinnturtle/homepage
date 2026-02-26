@@ -1,0 +1,37 @@
+== search through files for string
+`grep -rn --include=\*.scala . -e "alkotesterData"`
+
+* -r means recursive
+* -n show line number
+* -w for whole word
+* -i ignore case
+* -l or -L for case
+
+== archive and compress vi pipe, with status bar
+....
+tar -cf - <path_to_source> | pv -s $(du -sb <path_to_source> | awk '{print $1}') | 7z a -si -mx=9 <path_to_destination>.tar.7z
+....
+
+== list all files of an installed package
+....
+for ARG in $(pacman -Qql bookworm); do [ ! -d $ARG ] && [ -x $ARG ] && echo $ARG; done
+....
+
+== to lowercase, uppercase, etc
+....
+string="RandOM CaSE"
+
+echo ${string,,}
+random case
+
+echo ${string,}
+randOM CaSE
+
+echo ${string^^}
+RANDOM CASE
+
+string="this is my string"
+string=($string)
+echo ${string[@]^}
+This Is My String
+....

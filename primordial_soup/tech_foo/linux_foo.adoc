@@ -1,0 +1,129 @@
+= LINUX-FOO
+:source-highlighter: prettify
+
+== set font as the `monospaced` default
+Modify (or create) the `~/.config/fontconfig/fonts.conf` file by adding the
+below snippet, `Mononoki` is used here as example, change for the font you want
+to set.
+
+[source, xml]
+....
+<match target="pattern">
+	<test name="family" qual="any">
+		<string>monospace</string>
+	</test>
+	<edit binding="strong" mode="prepend" name="family">
+		<string>Mononoki</string>
+	</edit>
+</match>
+....
+
+== load/unload drivers
+* `lsmod` - list modules
+* `modprobe -r <module name>` - remove module and all it's dependencies
+* `modprobe <module name>` - load module
+* `rmmod` - remove module (less gracefull than `modprobe -r`)
+
+== reset usb device
+.variant 1 (bash)
+[source, bash]
+....
+(change the 1-4.6 to the device needed)
+echo -n 0 > /sys/bus/usb/devices/1-4.6/authorized
+echo -n 1 > /sys/bus/usb/devices/1-4.6/authorized
+....
+
+.variant 2 - (bash) rescan all connections
+[source, bash]
+....
+echo -n 1 > <path to device controlls dir>/rescan
+....
+
+.variant 3 - (bash) rebind driver for device
+[source, bash]
+....
+#!/bin/bash
+
+if [[ $EUID != 0 ]] ; then
+  echo This must be run as root!
+  exit 1
+fi
+
+for xhci in /sys/bus/pci/drivers/?hci_hcd ; do
+
+  if ! cd $xhci ; then
+    echo Weird error. Failed to change directory to $xhci
+    exit 1
+  fi
+
+  echo Resetting devices from $xhci...
+
+  for i in ????:??:??.? ; do
+    echo -n "$i" > unbind
+    echo -n "$i" > bind
+  done
+done
+....
+
+.variant 4 - reinitialise the usb driver
+* list loaded drivers with `lsmod`
+* `modprobe -r <driver name>` to remove driver
+* `modprove <driver name>` to load driver
+
+.variant 5 - (c)
+[source, c]
+....
+/* usbreset -- send a USB port reset to a USB device */
+
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+
+#include <linux/usbdevice_fs.h>
+
+
+int main(int argc, char **argv)
+{
+    const char *filename;
+    int fd;
+    int rc;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: usbreset device-filename\n");
+        return 1;
+    }
+    filename = argv[1];
+
+    fd = open(filename, O_WRONLY);
+    if (fd < 0) {
+        perror("Error opening output file");
+        return 1;
+    }
+
+    printf("Resetting USB device %s\n", filename);
+    rc = ioctl(fd, USBDEVFS_RESET, 0);
+    if (rc < 0) {
+        perror("Error in ioctl");
+        return 1;
+    }
+    printf("Reset successful\n");
+
+    close(fd);
+    return 0;
+}
+....
+
+.variant 6 unbind via unbind file in /sys/drivers/...
+....
+ls -la /sys/bus/usb/devices/1-0\:1.0/a #to find where drives link points to
+# it was "driver -> ../../../../../../bus/usb/drivers/hub"
+echo -n "1-0:1.0" > /sys/bus/usb/drivers/hub/unbind
+echo -n "1-0:1.0" > /sys/bus/usb/drivers/hub/bind
+....
+
+.variant 7 trigger usb disable via android setprop
+....
+setprop sys.usb.config=none
+....

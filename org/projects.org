@@ -1,0 +1,7 @@
+#+INCLUDE: "./head.org"
+
+#+TITLE: Projects
+
+* Work in Progress
+
+This means that work is progressing, right?

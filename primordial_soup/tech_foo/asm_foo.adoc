@@ -1,0 +1,22 @@
+= ASSEMBLY-FOO
+:source-highlighter: prettify
+:toc:
+
+== Linking C Runtime With ld (no GCC)
+
+Always wandered where (and what) all the necessary bits are when linking an
+assembled object with `ld` (as opposed to the `gcc` wrapper(s)).
+
+[source, bash]
+....
+nasm -f elf64 -o my.o my.asm
+ld -o my_exe -pie -dynamic-linker /lib64/ld-linux-x86-64.so.2 -lc /usr/lib/crt1.o my.o
+....
+
+* `-pie` : make a PIE (Position Independent Executable, yummy!).
+* `-dynamic-linker <path>` : who's gonna execute this executable, otherwise you'll
+  encounter something along the lines of "cannot execute: required file not
+  found".
+* `-lc` : linking in the C library for e.g. `__libc_start_main`.
+* `/usr/lib/crt1.o` : linking together with the C runtime. (that's where the
+  `_start` is, among other things).
