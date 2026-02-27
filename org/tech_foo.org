@@ -159,7 +159,9 @@ Operators =-nt= and =-ot= for /newer-than/ and /older-than/ respectively.
 *** TODO Test the example, typed from memory.
 
 
-* Linux Miscellaneous
+* Linux
+
+** Miscellaneous
 
 #+BEGIN_SRC bash
   #kill all radios
@@ -212,3 +214,34 @@ Operators =-nt= and =-ot= for /newer-than/ and /older-than/ respectively.
 - =-t= type (e.g. =c= for C source files).
 - =-e= regexp, similar to extended regexp in =grep=.
 - =-C<n>= context: print <n> number of lines before and after match.
+
+
+** List All Files of an Installed Packman Package
+
+#+BEGIN_SRC bash
+  pname="<my package name>"
+  for p in $(pacman -Qql "$pname"); do [ ! -d $p ] && [ -x $p ] && echo $p; done
+#+END_SRC
+
+
+* Miscellaneous
+
+** Download a Website
+
+How many things get broken depends on the web-site in question, I found it
+useful to grab educational or reference web-sites when I expect to have no
+Internet access for a while.
+
+#+CAPTION: Wget under Linux
+#+BEGIN_SRC bash
+  wget \
+      --recursive \
+      --no-clobber \
+      --page-requisites \
+      --html-extension \
+      --convert-links \
+      --restrict-file-names=windows \
+      --domains website.org \
+      --no-parent \
+      www.website.org/tutorials/html/
+#+END_SRC
