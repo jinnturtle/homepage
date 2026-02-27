@@ -1,0 +1,6 @@
+= README
+
+== TODO
+
+* [ ] Make some instructions on how to turn the Org-Mode web into an HTML web.
+* [ ] Consider crafting a nicer landing page.
