@@ -1,0 +1,7 @@
+#+INCLUDE: "./head.org"
+
+#+TITLE: Weblog Posts
+
+* Under Construction
+
+This space is soon to be populated, possibly with something cool.

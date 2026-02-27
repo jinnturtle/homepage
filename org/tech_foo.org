@@ -4,12 +4,9 @@
 
 * Intro
 
-
-This document contains the various snippets of script and code I find useful
-once in a while (or expect to).
-
-As of 2026-02-26 this page is an early work in progress, just dumping info from
-some notes I have accumulated over time.
+This document contains the various snippets of script, code, and knowledge I
+find useful once in a while (or expect to) as memory is not to be trusted with
+the minutia thereof.
 
 
 ** TODO Check Quality of Miscellaneous Sections.
@@ -22,10 +19,10 @@ Looks a bit cramped, splitting into subsections may be a good idea.
 Most info seems to be in main =notes.adoc= file, more bits in =tech_foo=
 directory, some useful things in the raw =creative_log.org=, think where else.
 
-
-** TODO Include Remaining Topics
-
-Check if "Linux" and "Bash" are done, include remaining topics.
+- Places [2/3]
+  - [X] =notes.adoc=
+  - [X] =tech_foo/=
+  - [ ] =creative_log.org=
 
 
 ** TODO Refine Examples.
@@ -90,9 +87,22 @@ Check if "Linux" and "Bash" are done, include remaining topics.
 
   fbase=$(basename $f); ftitle=${fbase#*.}; echo "$ftitle"
   ext1.ext2.ext3
+#+END_SRC
 
-  #compose a command string and execute with eval (includes double-escaped quotes)
-  for f in $(find -maxdepth 1 -type f); do fbase=$(basename $f); ftitle=${fbase%%.*}; ftitle=$(echo $ftitle | tr '_' ' '); exstr=$(printf 'kid3-cli -c "set title \\"%s\\"" "%s"\n' "$ftitle" "$f"); printf '\n*** %s ***\n' "$exstr"; eval $exstr; done
+** Compose a Command String and Execute With =eval=
+
+#+BEGIN_SRC bash -n
+  for f in $(find -maxdepth 1 -type f); do
+      fbase=$(basename $f);
+      ftitle=${fbase%%.*};
+      ftitle=$(echo $ftitle | tr '_' ' ');
+
+      # escape char needs to be escaped for eval later thus twice-escaped quotes
+      exstr=$(printf 'kid3-cli -c "set title \\"%s\\"" "%s"\n' "$ftitle" "$f");
+      printf '\n*** %s ***\n' "$exstr";
+
+      eval $exstr;
+  done
 #+END_SRC
 
 
@@ -144,7 +154,7 @@ Check if "Linux" and "Bash" are done, include remaining topics.
 
 Operators =-nt= and =-ot= for /newer-than/ and /older-than/ respectively.
 
-#+BEGIN_SRC bash
+#+BEGIN_SRC bash -n
   doc_files=*.org
 
   for f in ${doc_files[@]}; do
@@ -155,8 +165,6 @@ Operators =-nt= and =-ot= for /newer-than/ and /older-than/ respectively.
       emacs "$f" --batch -f org-html-export-to-html --kill
   done
 #+END_SRC
-
-*** TODO Test the example, typed from memory.
 
 
 * Linux
@@ -214,6 +222,144 @@ Operators =-nt= and =-ot= for /newer-than/ and /older-than/ respectively.
 - =-t= type (e.g. =c= for C source files).
 - =-e= regexp, similar to extended regexp in =grep=.
 - =-C<n>= context: print <n> number of lines before and after match.
+
+
+** System
+
+*** Set Default Font Across System (Debian or Arch Based Distributions)
+
+| Updated | 2020-03-13 |
+
+Modify (or create) the =~/.config/fontconfig/fonts.conf= file by adding the
+below snippet, =Mononoki= (=monospace= type) is used here as example, change for
+the font and type you want to set.
+
+#+BEGIN_SRC xml -n
+  <match target="pattern">
+    <test name="family" qual="any">
+  	<string>monospace</string>
+    </test>
+    <edit binding="strong" mode="prepend" name="family">
+  	<string>Mononoki</string>
+    </edit>
+  </match>
+#+END_SRC
+
+
+*** Load/Unload Drivers (Lsmod, Modprobe)
+
+- =lsmod= - list modules
+- =modprobe -r <module name>= - remove module and all it's dependencies
+- =modprobe <module name>= - load module
+- =rmmod= - remove module (less gracefull than =modprobe -r=)
+
+
+*** Reset USB Device
+
+| Updated | 2018-11-09 |
+
+Various ways to reset a USB device under Linux and Android.
+
+#+CAPTION: Echo values to the special file (sh).
+#+BEGIN_SRC sh
+  #(change the 1-4.6 to the device needed)
+  echo -n 0 > /sys/bus/usb/devices/1-4.6/authorized
+  echo -n 1 > /sys/bus/usb/devices/1-4.6/authorized
+#+END_SRC
+
+#+CAPTION: Trigger a re-scan.
+#+BEGIN_SRC sh
+  echo -n 1 > <path to device controlls dir>/rescan
+#+END_SRC
+
+#+CAPTION: Rebind the device driver.
+#+BEGIN_SRC bash -n
+  #!/bin/bash
+
+  if [[ $EUID != 0 ]] ; then
+      echo This must be run as root!
+      exit 1
+  fi
+
+  for xhci in /sys/bus/pci/drivers/?hci_hcd ; do
+
+      if ! cd $xhci ; then
+          echo Weird error. Failed to change directory to $xhci
+          exit 1
+      fi
+
+      echo Resetting devices from $xhci...
+
+      for i in ????:??:??.? ; do
+          echo -n "$i" > unbind
+          echo -n "$i" > bind
+      done
+  done
+#+END_SRC
+
+#+CAPTION: Re-load the USB driver.
+#+BEGIN_SRC sh
+  dname="<driver name>"
+  modprobe -r "$dname"     # to remove driver
+  modprobe "$dname"        # to load driver
+#+END_SRC
+
+#+CAPTION: Write a program that does it for you.
+#+BEGIN_SRC C -n
+  /* usbreset -- send a USB port reset to a USB device */
+
+  #include <stdio.h>
+  #include <unistd.h>
+  #include <fcntl.h>
+  #include <errno.h>
+  #include <sys/ioctl.h>
+
+  #include <linux/usbdevice_fs.h>
+
+
+  int main(int argc, char **argv)
+  {
+      const char *filename;
+      int fd;
+      int rc;
+
+      if (argc != 2) {
+          fprintf(stderr, "Usage: usbreset device-filename\n");
+          return 1;
+      }
+      filename = argv[1];
+
+      fd = open(filename, O_WRONLY);
+      if (fd < 0) {
+          perror("Error opening output file");
+          return 1;
+      }
+
+      printf("Resetting USB device %s\n", filename);
+      rc = ioctl(fd, USBDEVFS_RESET, 0);
+      if (rc < 0) {
+          perror("Error in ioctl");
+          return 1;
+      }
+      printf("Reset successful\n");
+
+      close(fd);
+      return 0;
+  }
+#+END_SRC
+
+#+CAPTION: Unbind via the "unbind" special file.
+#+BEGIN_SRC sh
+  ls -la /sys/bus/usb/devices/1-0\:1.0/a #to find where drives link points to
+  # it was "driver -> ../../../../../../bus/usb/drivers/hub"
+  echo -n "1-0:1.0" > /sys/bus/usb/drivers/hub/unbind
+  echo -n "1-0:1.0" > /sys/bus/usb/drivers/hub/bind
+#+END_SRC
+
+#+CAPTION: Trigger USB disable via android =setprop=.
+#+BEGIN_SRC sh
+  setprop sys.usb.config=none
+#+END_SRC
 
 
 ** List All Files of an Installed Packman Package

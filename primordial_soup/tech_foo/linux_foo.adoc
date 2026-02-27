@@ -28,7 +28,7 @@ to set.
 .variant 1 (bash)
 [source, bash]
 ....
-(change the 1-4.6 to the device needed)
+#(change the 1-4.6 to the device needed)
 echo -n 0 > /sys/bus/usb/devices/1-4.6/authorized
 echo -n 1 > /sys/bus/usb/devices/1-4.6/authorized
 ....
