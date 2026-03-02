@@ -1,6 +1,32 @@
 = README
 
-== TODO
+This is where the source of the homepage lives. It's mostly an Org-mode web
+intended to be easy to use in Org-mode, but also easy to publish as a usable
+HTML website.
 
-* [ ] Make some instructions on how to turn the Org-Mode web into an HTML web.
-* [ ] Consider crafting a nicer landing page.
+
+== Build
+
+To build the website: Publish via Emacs org-mode. By default it should be `C-c`
+`C-e` `P` `p`.
+
+The Org-mode project is configured via settings in `./org/.dir-locals.el`.
+
+If successful, the website will be published the following location: `./html/`.
+
+
+=== Alternatives
+
+==== Emacs Batch Mode
+
+Exporting each file via Emacs batch mode also works (as of 2026-03-02), except
+code syntax highlighting.
+
+
+==== Pandoc
+
+Of course Pandoc is always an option, style might not be 100% consistent with
+output produced by Emacs though. And you'll need to manually convert links to
+point to `.html` files instead of `.org` files.
+
+E.g. `pandoc -f org -t html input.org -s -o output.html`.

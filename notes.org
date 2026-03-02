@@ -1,0 +1,14 @@
+#+TITLE: Notes for Homepage Project
+
+* To-Dos
+
+** This Project
+
+- [ ] Make some instructions on how to turn this Org-mode web into an HTML web.
+- [ ] Consider crafting a nicer landing page.
+- [ ] Check if the "primordial_soup" is fully processed and if so, remove.
+
+** Posts
+
+- [ ] Pixel-perfect rendering with OpenGL.
+- [ ] Using KTX2 textures with OpenGL.

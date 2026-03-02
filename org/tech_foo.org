@@ -28,10 +28,10 @@ directory, some useful things in the raw =creative_log.org=, think where else.
 ** TODO Refine Examples.
 
 - Many lines are longer than what fits in the box and require scrolling,
-  potential case of longliningitus.
-  - Check if all the lines really need to be as long.
-  - CSS may need a tweak.
-  - Perhaps add the =-n= flag to listings while you're at it.
+  potential case of longliningitus. [2/3]
+  - [X] CSS may need a tweak.
+  - [X] Perhaps add the =-n= flag to listings while you're at it.
+  - [ ] Check if all the lines really need to be as long.
 
 
 ** TODO Scan for Remaining To-Dos.
