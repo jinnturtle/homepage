@@ -362,6 +362,23 @@ Various ways to reset a USB device under Linux and Android.
 #+END_SRC
 
 
+*** Create a Volatile File System (a.k.a Virtual RAM Disk/Drive)
+
+| Updated | 2026-06-27 |
+
+Today =tmpfs= is considered the preferred method under most circumstances.
+=ramfs= being the older utility, with us since the early days of the kernel.
+
+#+CAPTION: tmpfs example
+#+BEGIN_SRC bash
+  size=512
+  nr_inodes=$((size/16))
+  mode=700
+  target="where/the/files/live"
+  sudo mount -t tmpfs -o size="${size}k",nr_inodes="$nr_inodes",mode="$mode" tmpfs "$target"
+#+END_SRC
+
+
 ** List All Files of an Installed Packman Package
 
 #+BEGIN_SRC bash

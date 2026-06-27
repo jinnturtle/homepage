@@ -1,0 +1,10 @@
+#+INCLUDE: "./head.org"
+
+#+TITLE: News
+
+#+BEGIN_CENTER
+#+ATTR_HTML: :align center
+|       Date | Title                                                          |
+|------------+----------------------------------------------------------------|
+| 2026-06-27 | A note on making temporary (volatile) directories under Linux. |
+#+END_CENTER

@@ -5,6 +5,7 @@
 Hi, welcome to my little corner of the Internet. Below are some potential places
 of interest.
 
+- [[file:./news.org][What's New]]
 - [[file:./tech_foo.org][Snippets of tech-foo.]]
 - [[file:posts.org][Weblog Posts.]]
 - [[file:weblog.org][Weblog (not edited).]]
