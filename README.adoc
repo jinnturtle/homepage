@@ -12,7 +12,8 @@ To build the website: Publish via Emacs org-mode. By default it should be `C-c`
 
 The Org-mode project is configured via settings in `./org/.dir-locals.el`.
 
-If successful, the website will be published the following location: `./html/`.
+If successful, the website will be published to the following location:
+`./html/`.
 
 
 === Alternatives
@@ -26,7 +27,8 @@ code syntax highlighting.
 ==== Pandoc
 
 Of course Pandoc is always an option, style might not be 100% consistent with
-output produced by Emacs though. And you'll need to manually convert links to
-point to `.html` files instead of `.org` files.
+output produced by Emacs though. And links are not likely to be automatically
+converted to point to `.html` files instead of `.org` files (so you'll need to
+use something like `awk`).
 
 E.g. `pandoc -f org -t html input.org -s -o output.html`.

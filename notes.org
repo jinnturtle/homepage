@@ -4,11 +4,26 @@
 
 ** This Project
 
-- [ ] Make some instructions on how to turn this Org-mode web into an HTML web.
+- [ ] Update style-sheet to latest version.
 - [ ] Consider crafting a nicer landing page.
 - [ ] Check if the "primordial_soup" is fully processed and if so, remove.
+
+** Knowledgebase
+
+- [ ] Git: =merge --squash= VS =rebase -i=, a note on =merge= (without
+  =--squash=)
+  - Maybe make a post, and just a link in the knowledgebase.
 
 ** Posts
 
 - [ ] Pixel-perfect rendering with OpenGL.
 - [ ] Using KTX2 textures with OpenGL.
+
+
+*** Maybe
+
+I had reservations when putting these here, so probably need some extra time to
+think /if/ I should make the post.
+
+- [ ] Org-mode text tables.
+- [ ] Org-mode web and web.
